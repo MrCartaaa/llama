@@ -17,9 +17,7 @@ set -e
 # ------------------- CONFIG -------------------
 
 #MODEL_NAME="Llama-4-Maverick-17B-128E-Instruct-UD-Q4_K_XL-00001-of-00005.gguf"
-MODEL_NAME="Llama-4-Maverick-17B-128E-Instruct-UD-Q4_K_XL.gguf"
-
-MODEL_URL="https://huggingface.co/meta-llama/Llama-4-Maverick-400B-Instruct-GGUF/resolve/main/${MODEL_NAME}"
+MODEL_NAME="Llama-4-Scout-17B-16E-Instruct-UD-Q2_K_XL.gguf"
 
 
 MODEL_DIR="$HOME/llama-models"
@@ -36,11 +34,11 @@ SRV="$BUILD_DIR/bin/llama-server"
 
 
 
-CTX=131072; TEMP=0.7; THR=64; PORT=8080
+CTX=32768; TEMP=0.7; THR=64; PORT=8080
 
 
 
-echo "=== Llama 4 Maverick – Clean Ninja Build ==="
+echo "=== Llama 4 Scout – Clean Ninja Build ==="
 
 
 
@@ -148,7 +146,7 @@ cd "$BUILD_DIR"
 
 
 
-cmake "$SRC_DIR" -DLLAMA_CUDA=ON -DLLAMA_BUILD_SERVER=ON -DCMAKE_BUILD_TYPE=Release -G Ninja
+cmake "$SRC_DIR" -DGGML_CUDA=ON -DLLAMA_BUILD_SERVER=ON -DCMAKE_BUILD_TYPE=Release -G Ninja
 
 
 
@@ -162,15 +160,14 @@ ninja -j$THR
 
 # ------------------- 6. Model -------------------
 
-echo "[6/6] Ensuring model is present..."
+echo "[6/6] Ensuring modVel is present..."
 
 mkdir -p "$MODEL_DIR"
 
 if [ ! -f "$MODEL_DIR/$MODEL_NAME" ]; then
 
-    echo "   → Downloading 320 GB (resumable)..."
-
-    wget -c --progress=bar:force:noscroll -O "$MODEL_DIR/$MODEL_NAME" "$MODEL_URL"
+    echo "   → Model is not present. exiting..."
+    exit 1
 
 fi
 
@@ -188,23 +185,48 @@ TENSOR_SPLIT="0.5,0.5"  # Even split between 2 GPUs
 
 
 
-echo "[LAUNCH] Starting Hybrid Mode: GPU (60 layers) + RAM/CPU Overflow"
+#echo "[LAUNCH] Starting Hybrid Mode: GPU (60 layers) + RAM/CPU Overflow"
 
 # taskset -c 0-63 "$SRV" --model "$MODEL_DIR/$MODEL_NAME" --ctx-size $CTX --temp $TEMP --n-gpu-layers $GPU_LAYERS --tensor-split $TENSOR_SPLIT --mlock --no-mmap --port $PORT --host 0.0.0.0 --threads $THR --n-gpu-layers 0 --override-tensor "blk\.\d+\.attn=GPU" --override-tensor "blk\.\d+\.ffn_gate_proj\|blk\.\d+\.ffn_up_proj\|blk\.\d+\.ffn_down_proj=CPU" --override-tensor "token_embeddings\|output=CPU"
+#taskset -c 0-63 "$SRV" \
+#    --model "$MODEL_DIR/$MODEL_NAME" \
+#    --ctx-size 8192 \
+#    --temp 0.7 \
+#    --port 8080 \
+#    --host 0.0.0.0 \
+#    --threads 64 \
+#    --n-gpu-layers 0 \
+#    --override-tensor "blk\.\d+\.ffn_down_proj=CPU" \
+#    --override-tensor "token_embd=CPU" \
+#    --override-tensor "output=CPU" \
+#    --override-tensor "blk\.\d+\.attn_q_proj=CUDA0" \
+#    --override-tensor "blk\.\d+\.attn_k_proj=CUDA1" \
+#    --override-tensor "blk\.\d+\.attn_v_proj=CUDA0" \
+#    --override-tensor "blk\.\d+\.attn_output_proj=CUDA1" \
+#    --override-tensor "blk\.\d+\.ffn_gate_proj=CUDA0" \
+#    --override-tensor "blk\.\d+\.ffn_up_proj=CUDA1"
+# --- 7. Launch: PERFECT 50/50 GPU SPLIT ---
+
 taskset -c 0-63 "$SRV" \
     --model "$MODEL_DIR/$MODEL_NAME" \
-    --ctx-size 8192 \
-    --temp 0.7 \
-    --port 8080 \
+    --tensor-split $TENSOR_SPLIT \
+    --n-gpu-layers 50 \
+    --threads $THR \
+    --verbose \
+    --ctx-size $CTX \
+    --temp $TEMP \
+    --port $PORT \
     --host 0.0.0.0 \
-    --threads 64 \
-    --n-gpu-layers 60 \
-    --override-tensor "blk\.\d+\.ffn_down_proj=CPU" \
-    --override-tensor "token_embd=CPU" \
-    --override-tensor "output=CPU" \
-    --override-tensor "blk\.\d+\.attn_q_proj=CUDA0" \
-    --override-tensor "blk\.\d+\.attn_k_proj=CUDA1" \
-    --override-tensor "blk\.\d+\.attn_v_proj=CUDA0" \
-    --override-tensor "blk\.\d+\.attn_output_proj=CUDA1" \
-    --override-tensor "blk\.\d+\.ffn_gate_proj=CUDA0" \
-    --override-tensor "blk\.\d+\.ffn_up_proj=CUDA1"
+    --no-warmup
+
+    #--override-tensor "blk\.([0-9]*[02468])\.attn.*=CUDA0" \
+    #--override-tensor "blk\.([0-9]*[13579])\.attn.*=CUDA1" \
+    #--override-tensor "blk\.([0-9]*[02468])\.ffn_gate_proj=CUDA0" \
+    #--override-tensor "blk\.([0-9]*[13579])\.ffn_gate_proj=CUDA1" \
+    #--override-tensor "blk\.([0-9]*[02468])\.ffn_up_proj=CUDA0" \
+    #--override-tensor "blk\.([0-9]*[13579])\.ffn_up_proj=CUDA1" \
+    #--override-tensor "blk\.([0-9]*[02468])\.ffn_down_proj=CUDA0" \
+    #--override-tensor "blk\.([0-9]*[13579])\.ffn_down_proj=CUDA1" \
+    #--override-tensor "token_embd=CPU" \
+    #--override-tensor "output=CPU" \
+    #--override-tensor "blk\.\d+\.ffn_down_proj=CPU" \
