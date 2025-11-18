@@ -18,7 +18,7 @@ set -e
 
 #MODEL_NAME="Llama-4-Maverick-17B-128E-Instruct-UD-Q4_K_XL-00001-of-00005.gguf"
 MODEL_NAME="Llama-4-Scout-17B-16E-Instruct-UD-Q2_K_XL.gguf"
-
+# MODEL_NAME="nomic-embed-text-v1.5.Q8_0.gguf"
 
 MODEL_DIR="$HOME/llama-models"
 
@@ -217,6 +217,7 @@ taskset -c 0-63 "$SRV" \
     --temp $TEMP \
     --port $PORT \
     --host 0.0.0.0 \
+    --embeddings
     --no-warmup
 
     #--override-tensor "blk\.([0-9]*[02468])\.attn.*=CUDA0" \
