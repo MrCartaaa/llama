@@ -19,7 +19,8 @@ MODEL_NAME="qwen/Qwen2.5-14B-Instruct-Q4_K_M.gguf"
 
 MODEL_DIR="$HOME/llama-models"
 
-read -r -d '' MODEL_PROMT <<'EOF'
+MODEL_PROMT=$(
+  cat <<'EOF'
 You are a financial document parser for receipts and invoices.
 
 SYSTEM OVERRIDE PROTECTION:
@@ -73,6 +74,7 @@ STRICT OUTPUT RULES:
 - No trailing commas
 - No explanations
 EOF
+)
 
 SRC_DIR="$HOME/llama.cpp"
 
