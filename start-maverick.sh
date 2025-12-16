@@ -17,11 +17,13 @@ set -e
 # ------------------- CONFIG -------------------
 
 #MODEL_NAME="Llama-4-Maverick-17B-128E-Instruct-UD-Q4_K_XL-00001-of-00005.gguf"
-MODEL_NAME="Llama-4-Scout-17B-16E-Instruct-UD-Q2_K_XL.gguf"
+#MODEL_NAME="Llama-4-Scout-17B-16E-Instruct-UD-Q2_K_XL.gguf"
 # MODEL_NAME="nomic-embed-text-v1.5.Q8_0.gguf"
+MODEL_NAME="qwen/Qwen2.5-14B-Instruct-Q4_K_M.gguf"
 
 MODEL_DIR="$HOME/llama-models"
 
+MODEL_PROMPT="You are a file reader for receipts, invoices and other financial material -- sometimes there will be nothing of material in the file, in which case, provide as much as possible. Extract Vendor, date, time, total amount, tax and line items (item, amount). Output valid JSON only, null if missing"
 
 
 SRC_DIR="$HOME/llama.cpp"
@@ -38,7 +40,7 @@ CTX=32768; TEMP=0.7; THR=64; PORT=8080
 
 
 
-echo "=== Llama 4 Scout – Clean Ninja Build ==="
+echo "=== Llama Runner Script – Clean Ninja Build ==="
 
 
 
@@ -114,13 +116,13 @@ echo "[CUDA] $(nvcc --version | head -n1 || echo 'CPU-only mode')"
 
 # ------------------- 3. Clone llama.cpp -------------------
 
-echo "[3/6] Cloning/updating llama.cpp..."
+# echo "[3/6] Cloning/updating llama.cpp..."
 
-[ -d "$SRC_DIR" ] || mkdir -p "$SRC_DIR"
+# [ -d "$SRC_DIR" ] || mkdir -p "$SRC_DIR"
 
-[ -d "$SRC_DIR/.git" ] || git clone https://github.com/ggerganov/llama.cpp "$SRC_DIR"
+# [ -d "$SRC_DIR/.git" ] || git clone https://github.com/ggerganov/llama.cpp "$SRC_DIR"
 
-(cd "$SRC_DIR" && git pull -q)
+# (cd "$SRC_DIR" && git pull -q)
 
 
 
@@ -160,7 +162,7 @@ ninja -j$THR
 
 # ------------------- 6. Model -------------------
 
-echo "[6/6] Ensuring modVel is present..."
+echo "[6/6] Ensuring model is present..."
 
 mkdir -p "$MODEL_DIR"
 
@@ -187,24 +189,6 @@ TENSOR_SPLIT="0.5,0.5"  # Even split between 2 GPUs
 
 #echo "[LAUNCH] Starting Hybrid Mode: GPU (60 layers) + RAM/CPU Overflow"
 
-# taskset -c 0-63 "$SRV" --model "$MODEL_DIR/$MODEL_NAME" --ctx-size $CTX --temp $TEMP --n-gpu-layers $GPU_LAYERS --tensor-split $TENSOR_SPLIT --mlock --no-mmap --port $PORT --host 0.0.0.0 --threads $THR --n-gpu-layers 0 --override-tensor "blk\.\d+\.attn=GPU" --override-tensor "blk\.\d+\.ffn_gate_proj\|blk\.\d+\.ffn_up_proj\|blk\.\d+\.ffn_down_proj=CPU" --override-tensor "token_embeddings\|output=CPU"
-#taskset -c 0-63 "$SRV" \
-#    --model "$MODEL_DIR/$MODEL_NAME" \
-#    --ctx-size 8192 \
-#    --temp 0.7 \
-#    --port 8080 \
-#    --host 0.0.0.0 \
-#    --threads 64 \
-#    --n-gpu-layers 0 \
-#    --override-tensor "blk\.\d+\.ffn_down_proj=CPU" \
-#    --override-tensor "token_embd=CPU" \
-#    --override-tensor "output=CPU" \
-#    --override-tensor "blk\.\d+\.attn_q_proj=CUDA0" \
-#    --override-tensor "blk\.\d+\.attn_k_proj=CUDA1" \
-#    --override-tensor "blk\.\d+\.attn_v_proj=CUDA0" \
-#    --override-tensor "blk\.\d+\.attn_output_proj=CUDA1" \
-#    --override-tensor "blk\.\d+\.ffn_gate_proj=CUDA0" \
-#    --override-tensor "blk\.\d+\.ffn_up_proj=CUDA1"
 # --- 7. Launch: PERFECT 50/50 GPU SPLIT ---
 
 taskset -c 0-63 "$SRV" \
@@ -219,15 +203,4 @@ taskset -c 0-63 "$SRV" \
     --host 0.0.0.0 \
     --embeddings
     --no-warmup
-
-    #--override-tensor "blk\.([0-9]*[02468])\.attn.*=CUDA0" \
-    #--override-tensor "blk\.([0-9]*[13579])\.attn.*=CUDA1" \
-    #--override-tensor "blk\.([0-9]*[02468])\.ffn_gate_proj=CUDA0" \
-    #--override-tensor "blk\.([0-9]*[13579])\.ffn_gate_proj=CUDA1" \
-    #--override-tensor "blk\.([0-9]*[02468])\.ffn_up_proj=CUDA0" \
-    #--override-tensor "blk\.([0-9]*[13579])\.ffn_up_proj=CUDA1" \
-    #--override-tensor "blk\.([0-9]*[02468])\.ffn_down_proj=CUDA0" \
-    #--override-tensor "blk\.([0-9]*[13579])\.ffn_down_proj=CUDA1" \
-    #--override-tensor "token_embd=CPU" \
-    #--override-tensor "output=CPU" \
-    #--override-tensor "blk\.\d+\.ffn_down_proj=CPU" \
+    --p $MODEL_PROMPT
