@@ -147,7 +147,7 @@ echo "[LAUNCH] Starting Hybrid Mode: GPU (60 layers) + RAM/CPU Overflow"
 # --- 7. Launch: PERFECT 50/50 GPU SPLIT ---
 
 taskset -c 0-63 "$SRV" \
-  --model "$MODEL_DIR/$MODEL_NAME" \
+  -hf unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q5_K_XL \
   --tensor-split $TENSOR_SPLIT \
   --n-gpu-layers 50 \
   --threads $THR \
