@@ -157,4 +157,5 @@ taskset -c 0-63 "$SRV" \
   --port $PORT \
   --host 0.0.0.0 \
   --embeddings \
-  --no-warmup
+  --no-warmup \
+  --jinja
