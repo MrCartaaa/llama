@@ -7,6 +7,8 @@ Wants=network-online.target
 Type=simple
 User=root
 Environment=HOME=/home/john
+Environment=PATH=/usr/local/cuda-12.6/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=LD_LIBRARY_PATH=/usr/local/cuda-12.6/lib64:/usr/local/cuda/lib64
 WorkingDirectory=/home/john/llama
 ExecStart=/bin/bash /home/john/llama/start-llama.sh
 Restart=always
