@@ -158,4 +158,5 @@ taskset -c 0-63 "$SRV" \
   --host 0.0.0.0 \
   --embeddings \
   --no-warmup \
-  --jinja
+  --jinja \ 
+  --model-alias "qwen3-coder-30b-q5"
