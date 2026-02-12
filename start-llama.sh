@@ -147,15 +147,23 @@ echo "[LAUNCH] Starting Hybrid Mode: GPU (60 layers) + RAM/CPU Overflow"
 # --- 7. Launch: PERFECT 50/50 GPU SPLIT ---
 
 taskset -c 0-63 "$SRV" \
-  -hf unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q5_K_XL \
-  --tensor-split $TENSOR_SPLIT \
-  --n-gpu-layers 50 \
-  --threads $THR \
-  --verbose \
-  --ctx-size $CTX \
-  --temp $TEMP \
-  --port $PORT \
+  -hf unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q8_0 \
+  --tensor-split 0.48,0.52 \
+  --n-gpu-layers -1 \
+  --ctx-size 65536 \
+  --temp 0.1 \
+  --threads 48 \
+  --batch-size 4096 \
+  --ubatch-size 1024 \
+  --flash-attn on \
+  --port 8080 \
   --host 0.0.0.0 \
   --embeddings \
   --no-warmup \
-  --jinja
+  --jinja \
+  --verbose
+
+# If an OOM error occurs, replace existing with:
+# ctx = 32768
+# batch = 2048
+# ubatch = 512

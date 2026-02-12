@@ -1,0 +1,16 @@
+[Unit]
+Description=Llama Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Environment=HOME=/home/jaime
+WorkingDirectory=/home/jaime/Work/ai/llama
+ExecStart=/bin/bash /home/jaime/Work/ai/llama/start-llama.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
