@@ -147,7 +147,7 @@ echo "[LAUNCH] Starting Hybrid Mode: GPU (60 layers) + RAM/CPU Overflow"
 # --- 7. Launch: PERFECT 50/50 GPU SPLIT ---
 
 taskset -c 0-63 "$SRV" \
-  -hf bartowski/Qwen2.5-Coder-32B-Instruct-GGUF:Q8_0 \
+  -hf unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q8_0 \
   --tensor-split 0.48,0.52 \
   --n-gpu-layers -1 \
   --ctx-size 65536 \

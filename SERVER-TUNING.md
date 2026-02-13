@@ -8,9 +8,7 @@ This README documents the **tunable parts** of a `llama-server` launch command a
 
 ```bash
 taskset -c 0-63 llama-server \
-  # -jinja tooling does not yet work with Qwen3-Coder-30B-A3B-Instruct-GGUF
-  # -hf unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q8_0 \
-  -hf unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q8_0 \ 
+  -hf unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q8_0 \
   --tensor-split 0.48,0.52 \
   --n-gpu-layers -1 \
   --ctx-size 32768 \
