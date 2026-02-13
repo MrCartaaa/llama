@@ -148,7 +148,7 @@ echo "[LAUNCH] Starting Hybrid Mode: GPU (60 layers) + RAM/CPU Overflow"
 
 taskset -c 0-63 "$SRV" \
   -hf unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q8_0 \
-  -- chat-template-file /home/john/llama/llama-templates/qwen3_unsloth_chat_template.jinja \
+  --chat-template-file /home/john/llama/llama-templates/qwen3_unsloth_chat_template.jinja \
   --tensor-split 0.48,0.52 \
   --n-gpu-layers -1 \
   --ctx-size 65536 \
