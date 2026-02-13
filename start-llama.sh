@@ -41,7 +41,8 @@ echo "[1/6] Installing build tools... (skipped if up to date)"
 
 sudo apt update -qq
 
-sudo apt install -y -qq cmake ninja-build build-essential git wget curl libcurl4-openssl-dev gnupg2 ca-certificates lsb-release
+sudo apt install -y -qq cmake ninja-build build-essential git wget curl \
+  libcurl4-openssl-dev libssl-dev gnupg2 ca-certificates lsb-release
 
 # ------------------- 2. CUDA -------------------
 
@@ -117,7 +118,12 @@ mkdir -p "$BUILD_DIR"
 
 cd "$BUILD_DIR"
 
-cmake "$SRC_DIR" -DGGML_CUDA=ON -DLLAMA_BUILD_SERVER=ON -DCMAKE_BUILD_TYPE=Release -G Ninja
+cmake "$SRC_DIR" -G Ninja \
+  -DGGML_CUDA=ON \
+  -DLLAMA_BUILD_SERVER=ON \
+  -DLLAMA_CURL=ON \
+  -DLLAMA_OPENSSL=ON \
+  -DCMAKE_BUILD_TYPE=Release
 
 # ------------------- 5. Build -------------------
 
@@ -147,7 +153,7 @@ echo "[LAUNCH] Starting Hybrid Mode: GPU (60 layers) + RAM/CPU Overflow"
 # --- 7. Launch: PERFECT 50/50 GPU SPLIT ---
 
 taskset -c 0-63 "$SRV" \
-  -hf unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q8_0 \
+  --model /home/john/.cache/llama.cpp/unsloth_Qwen3-Coder-30B-A3B-Instruct-GGUF_Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf \
   --chat-template-file /home/john/llama/llama-templates/qwen3_unsloth_chat_template.jinja \
   --tensor-split 0.48,0.52 \
   --n-gpu-layers -1 \
