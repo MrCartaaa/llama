@@ -153,23 +153,27 @@ echo "[LAUNCH] Starting Hybrid Mode: GPU (60 layers) + RAM/CPU Overflow"
 # --- 7. Launch: PERFECT 50/50 GPU SPLIT ---
 
 taskset -c 0-63 "$SRV" \
-  --model /home/john/.cache/llama.cpp/unsloth_Qwen3-Coder-30B-A3B-Instruct-GGUF_Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf \
+  -hf unsloth/Qwen3.5-35B-A3B-GGUF:UD-Q6_K_XL \
   --chat-template-file /home/john/llama/llama-templates/qwen3_unsloth_chat_template.jinja \
   --tensor-split 0.48,0.52 \
   --n-gpu-layers -1 \
-  --ctx-size 65536 \
+  --ctx-size 131072 \
+  --rope-scaling yarn \
+  --rope-scale 4 \
+  --yarn-orig-ctx 32768 \
   --temp 0.1 \
   --threads 48 \
-  --batch-size 4096 \
-  --ubatch-size 1024 \
+  --batch-size 2048 \
+  --ubatch-size 512 \
   --flash-attn on \
   --port 8080 \
   --host 0.0.0.0 \
   --embeddings \
   --no-warmup \
   --jinja \
-  --verbose
-
+  --verbose \
+  --cache-type-k q8_0 \
+  --cache-type-v q8_0
 # If an OOM error occurs, replace existing with:
 # ctx = 32768
 # batch = 2048
