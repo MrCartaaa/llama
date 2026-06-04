@@ -62,7 +62,7 @@ if [ -d "$SRC_DIR/.git" ]; then
     (cd "$SRC_DIR" && git fetch --all && git reset --hard origin/master && git clean -fdx)
 else
     echo "   → Fresh clone..."
-    git clone https://github.com/ggerganov/llama.cpp "$SRC_DIR"
+    git clone git@github.com:ggerganov/llama.cpp.git "$SRC_DIR"
 fi
 
 echo "[VERSION] $(cd "$SRC_DIR" && git log -1 --format="%h %as %s")"
