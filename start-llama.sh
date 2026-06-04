@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
 # Llama.cpp Runner – Optimized for 2× RTX Titan | Threadripper 3990X | 128 GB RAM
-# Always pulls latest llama.cpp | Uses -hf | Full hybrid VRAM+RAM offload
+# Always pulls latest via HTTPS | Hybrid VRAM+RAM offload
 # =============================================================================
 
 set -e
@@ -14,7 +14,7 @@ SRV="$BUILD_DIR/bin/llama-server"
 
 # Taskset / CPU affinity
 CPU_AFFINITY="0-63"
-THR=64                    # Adjust based on your Threadripper (3990X has 128 threads)
+THR=64
 
 # Server settings
 CTX=131072
@@ -53,21 +53,29 @@ else
 fi
 echo "[CUDA] $(nvcc --version | head -n1 || echo 'CPU-only mode')"
 
-# ------------------- 3. Update llama.cpp to latest (always runs) -------------------
+# ------------------- 3. Update llama.cpp to latest (HTTPS) -------------------
 echo "[3/6] Updating llama.cpp to latest master..."
+
+# Fix Git ownership issue
+git config --global --add safe.directory "$SRC_DIR"
+
 mkdir -p "$SRC_DIR"
 
 if [ -d "$SRC_DIR/.git" ]; then
     echo "   → Pulling latest changes..."
-    (cd "$SRC_DIR" && git fetch --all && git reset --hard origin/master && git clean -fdx)
+    (cd "$SRC_DIR" && \
+     git remote set-url origin https://github.com/ggerganov/llama.cpp.git && \
+     git fetch --all && \
+     git reset --hard origin/master && \
+     git clean -fdx)
 else
-    echo "   → Fresh clone..."
-    git clone git@github.com:ggerganov/llama.cpp.git "$SRC_DIR"
+    echo "   → Fresh clone via HTTPS..."
+    git clone https://github.com/ggerganov/llama.cpp.git "$SRC_DIR"
 fi
 
 echo "[VERSION] $(cd "$SRC_DIR" && git log -1 --format="%h %as %s")"
 
-# ------------------- 4. Clean + CMake (Pascal + Flash Attention) -------------------
+# ------------------- 4. Clean + CMake -------------------
 echo "[4/6] Configuring CMake..."
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
@@ -96,7 +104,7 @@ taskset -c "$CPU_AFFINITY" "$SRV" \
     --chat-template-file /home/john/llama/llama-templates/qwen3_unsloth_chat_template.jinja \
     --tensor-split $TENSOR_SPLIT \
     --split-mode layer \
-    --n-gpu-layers -1 \                    # ← This is the RAM offload flag
+    --n-gpu-layers -1 \
     --ctx-size $CTX \
     --rope-scaling yarn \
     --rope-scale 4 \
