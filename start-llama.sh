@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
 # Llama.cpp Runner – Optimized for 2× RTX Titan | Threadripper 3990X | 128 GB RAM
-# Always pulls latest via HTTPS | Hybrid VRAM+RAM offload
+# Force HTTPS + Git ownership + Known Hosts fix
 # =============================================================================
 
 set -e
@@ -53,21 +53,27 @@ else
 fi
 echo "[CUDA] $(nvcc --version | head -n1 || echo 'CPU-only mode')"
 
-# ------------------- 3. Update llama.cpp to latest (HTTPS) -------------------
+# ------------------- 3. Update llama.cpp to latest (FORCED HTTPS) -------------------
 echo "[3/6] Updating llama.cpp to latest master..."
 
-# Fix Git ownership issue
+# Fix ownership + StrictHostKeyChecking for any SSH fallback
 git config --global --add safe.directory "$SRC_DIR"
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null || true
+chmod 644 ~/.ssh/known_hosts
 
 mkdir -p "$SRC_DIR"
 
 if [ -d "$SRC_DIR/.git" ]; then
-    echo "   → Pulling latest changes..."
-    (cd "$SRC_DIR" && \
-     git remote set-url origin https://github.com/ggerganov/llama.cpp.git && \
-     git fetch --all && \
-     git reset --hard origin/master && \
-     git clean -fdx)
+    echo "   → Forcing HTTPS remote and pulling latest..."
+    cd "$SRC_DIR"
+    git remote set-url origin https://github.com/ggerganov/llama.cpp.git
+    git config --local --unset-all remote.origin.url || true
+    git remote set-url origin https://github.com/ggerganov/llama.cpp.git
+    git fetch --all --prune
+    git reset --hard origin/master
+    git clean -fdx
 else
     echo "   → Fresh clone via HTTPS..."
     git clone https://github.com/ggerganov/llama.cpp.git "$SRC_DIR"
