@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
 # Llama.cpp Runner – Optimized for 2× RTX Titan | Threadripper 3990X | 128 GB RAM
-# Force HTTPS + Git ownership + Known Hosts fix
+# SSH Version (as you prefer) + Known Hosts Fix
 # =============================================================================
 
 set -e
@@ -22,7 +22,7 @@ TEMP=0.7
 PORT=8080
 TENSOR_SPLIT="0.48,0.52"
 
-echo "=== Llama Runner – Latest llama.cpp + Dual Titan Hybrid ==="
+echo "=== Llama Runner – Latest llama.cpp (SSH) + Dual Titan Hybrid ==="
 
 # ------------------- 1. System deps -------------------
 echo "[1/6] Installing build tools..."
@@ -53,10 +53,10 @@ else
 fi
 echo "[CUDA] $(nvcc --version | head -n1 || echo 'CPU-only mode')"
 
-# ------------------- 3. Update llama.cpp to latest (FORCED HTTPS) -------------------
-echo "[3/6] Updating llama.cpp to latest master..."
+# ------------------- 3. Update llama.cpp via SSH -------------------
+echo "[3/6] Updating llama.cpp to latest master (SSH)..."
 
-# Fix ownership + StrictHostKeyChecking for any SSH fallback
+# Fix ownership + populate GitHub host keys
 git config --global --add safe.directory "$SRC_DIR"
 mkdir -p ~/.ssh
 chmod 700 ~/.ssh
@@ -66,17 +66,17 @@ chmod 644 ~/.ssh/known_hosts
 mkdir -p "$SRC_DIR"
 
 if [ -d "$SRC_DIR/.git" ]; then
-    echo "   → Forcing HTTPS remote and pulling latest..."
+    echo "   → Pulling latest via SSH..."
     cd "$SRC_DIR"
-    git remote set-url origin https://github.com/ggerganov/llama.cpp.git
-    git config --local --unset-all remote.origin.url || true
-    git remote set-url origin https://github.com/ggerganov/llama.cpp.git
+    git remote set-url origin git@github.com:ggerganov/llama.cpp.git
+    GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
     git fetch --all --prune
     git reset --hard origin/master
     git clean -fdx
 else
-    echo "   → Fresh clone via HTTPS..."
-    git clone https://github.com/ggerganov/llama.cpp.git "$SRC_DIR"
+    echo "   → Fresh clone via SSH..."
+    GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
+    git clone git@github.com:ggerganov/llama.cpp.git "$SRC_DIR"
 fi
 
 echo "[VERSION] $(cd "$SRC_DIR" && git log -1 --format="%h %as %s")"
