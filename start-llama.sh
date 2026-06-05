@@ -8,7 +8,7 @@ set -e
 
 # ================== CONFIG ==================
 # LLAMA_REPO="https://github.com/ggerganov/llama.cpp.git"     # Change this line:
-LLAMA_REPO="https://github.com/ikawrakow/ik_llama.cpp.git"   # ← Best for MoE on Pascal
+LLAMA_REPO="git@github.com:ikawrakow/ik_llama.cpp.git"   # ← Best for MoE on Pascal
 
 SRC_DIR="$HOME/llama.cpp"
 BUILD_DIR="$SRC_DIR/build-ninja"
