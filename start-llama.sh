@@ -86,7 +86,7 @@ cd "$BUILD_DIR"
 cmake "$SRC_DIR" \
     -G Ninja \
     -DGGML_CUDA=ON \
-    -DGGML_CUDA_FA=ON \
+    -DGGML_CUDA_FA=OFF \
     -DLLAMA_BUILD_SERVER=ON \
     -DLLAMA_CURL=ON \
     -DLLAMA_OPENSSL=ON \
@@ -106,10 +106,10 @@ taskset -c "$CPU_AFFINITY" "$SRV" \
     --ctx-size $CTX \
     --rope-scaling yarn \
     --rope-scale 4 \
+    --flash-attn off \
     --yarn-orig-ctx 32768 \
     --cache-type-k q8_0 \
     --cache-type-v q8_0 \
-    --flash-attn on \
     --threads $THR \
     --threads-batch $THR \
     --batch-size 2048 \
@@ -125,3 +125,4 @@ taskset -c "$CPU_AFFINITY" "$SRV" \
     --jinja \
     --no-warmup \
     --verbose
+
