@@ -64,11 +64,11 @@ mkdir -p "$SRC_DIR"
 
 if [ -d "$SRC_DIR/.git" ]; then
   rm -rf $LLAMA_REPO
-else
-    echo "   → Fresh clone via SSH..."
-    GIT_SSH_COMMAND="ssh -i $SSH_KEY -o StrictHostKeyChecking=no -o IdentitiesOnly=yes" \
-    git clone "$LLAMA_REPO" "$SRC_DIR"
 fi
+
+echo "   → Fresh clone via SSH..."
+GIT_SSH_COMMAND="ssh -i $SSH_KEY -o StrictHostKeyChecking=no -o IdentitiesOnly=yes" \
+git clone "$LLAMA_REPO" "$SRC_DIR"
 
 echo "[VERSION] $(cd "$SRC_DIR" && git log -1 --format="%h %as %s" || echo 'unknown')"
 
