@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
 # Llama.cpp Runner – Dual RTX Titan (Pascal) Optimized
-# Easy fork switching
+# ikawrakow fork + Conservative settings
 # =============================================================================
 
 set -e
@@ -17,12 +17,12 @@ SRV="$BUILD_DIR/bin/llama-server"
 CPU_AFFINITY="0-63"
 THR=64
 
-CTX=65536
+CTX=32768          # Reduced for stability
 TEMP=0.7
 PORT=8080
 TENSOR_SPLIT="0.5,0.5"
 
-echo "=== Llama Runner – Using repo: $LLAMA_REPO ==="
+echo "=== Llama Runner – ikawrakow fork ==="
 
 # ------------------- 1. System deps -------------------
 echo "[1/6] Installing build tools..."
@@ -94,8 +94,8 @@ cmake "$SRC_DIR" \
 echo "[5/6] Building..."
 ninja -j$THR
 
-# ------------------- 6. Launch -------------------
-echo "[LAUNCH] Starting server - Dual Titan + Light MoE offload..."
+# ------------------- 6. Launch - Conservative for Pascal -------------------
+echo "[LAUNCH] Starting server - Conservative settings..."
 
 taskset -c "$CPU_AFFINITY" "$SRV" \
     --model /home/john/.cache/llama.cpp/unsloth_Qwen3-Coder-Next-GGUF_Qwen3-Coder-Next-UD-Q4_K_S.gguf \
@@ -107,14 +107,14 @@ taskset -c "$CPU_AFFINITY" "$SRV" \
     --ctx-size $CTX \
     --rope-scaling yarn \
     --rope-scale 4 \
-    --flash-attn on \
     --yarn-orig-ctx 32768 \
     --cache-type-k q8_0 \
     --cache-type-v q8_0 \
+    --flash-attn off \
     --threads $THR \
     --threads-batch $THR \
-    --batch-size 2048 \
-    --ubatch-size 512 \
+    --batch-size 256 \           # Reduced
+    --ubatch-size 128 \          # Reduced
     --temp $TEMP \
     --top-p 0.95 \
     --top-k 40 \
@@ -126,4 +126,3 @@ taskset -c "$CPU_AFFINITY" "$SRV" \
     --jinja \
     --no-warmup \
     --verbose
-
