@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
 # Llama.cpp Runner – Dual RTX Titan (Pascal) Optimized
-# Force HTTPS + ikawrakow fork
+# Pure HTTPS + ikawrakow fork
 # =============================================================================
 
 set -e
@@ -22,7 +22,7 @@ TEMP=0.7
 PORT=8080
 TENSOR_SPLIT="0.5,0.5"
 
-echo "=== Llama Runner – ikawrakow fork (Force HTTPS) ==="
+echo "=== Llama Runner – ikawrakow fork (HTTPS) ==="
 
 # ------------------- 1. System deps -------------------
 echo "[1/6] Installing build tools..."
@@ -51,28 +51,27 @@ else
 fi
 echo "[CUDA] $(nvcc --version | head -n1 || echo 'CPU-only mode')"
 
-# ------------------- 3. Update llama.cpp (FORCED HTTPS) -------------------
-echo "[3/6] Updating llama.cpp (ikawrakow fork)..."
+# ------------------- 3. Update llama.cpp (HTTPS) -------------------
+echo "[3/6] Updating llama.cpp..."
 
 git config --global --add safe.directory "$SRC_DIR"
 mkdir -p "$SRC_DIR"
 
 if [ -d "$SRC_DIR/.git" ]; then
-    echo "   → Pulling latest (HTTPS)..."
+    echo "   → Pulling latest via HTTPS..."
     cd "$SRC_DIR"
-    git remote set-url origin "$LLAMA_REPO" || true
-    git config --local remote.origin.url "$LLAMA_REPO"
+    git remote set-url origin "$LLAMA_REPO"
     git fetch --all --prune
     git reset --hard origin/master
     git clean -fdx
 else
-    echo "   → Fresh clone (HTTPS)..."
+    echo "   → Fresh clone via HTTPS..."
     git clone "$LLAMA_REPO" "$SRC_DIR"
 fi
 
 echo "[VERSION] $(cd "$SRC_DIR" && git log -1 --format="%h %as %s" || echo 'unknown')"
 
-# ------------------- 4. CMake (Pascal Optimized) -------------------
+# ------------------- 4. CMake -------------------
 echo "[4/6] Configuring CMake..."
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
@@ -112,3 +111,14 @@ taskset -c "$CPU_AFFINITY" "$SRV" \
     --threads-batch $THR \
     --batch-size 256 \
     --ubatch-size 128 \
+    --temp $TEMP \
+    --top-p 0.95 \
+    --top-k 40 \
+    --repeat-penalty 1.10 \
+    --presence-penalty 0.1 \
+    --port $PORT \
+    --host 0.0.0.0 \
+    --embeddings \
+    --jinja \
+    --no-warmup \
+    --verbose
