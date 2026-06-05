@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
 # Llama.cpp Runner – Dual RTX Titan (Pascal) Optimized
-# ikawrakow fork + HTTPS (no SSH key problems)
+# Force HTTPS + ikawrakow fork
 # =============================================================================
 
 set -e
@@ -22,7 +22,7 @@ TEMP=0.7
 PORT=8080
 TENSOR_SPLIT="0.5,0.5"
 
-echo "=== Llama Runner – ikawrakow fork (HTTPS) ==="
+echo "=== Llama Runner – ikawrakow fork (Force HTTPS) ==="
 
 # ------------------- 1. System deps -------------------
 echo "[1/6] Installing build tools..."
@@ -51,21 +51,22 @@ else
 fi
 echo "[CUDA] $(nvcc --version | head -n1 || echo 'CPU-only mode')"
 
-# ------------------- 3. Update llama.cpp (HTTPS) -------------------
+# ------------------- 3. Update llama.cpp (FORCED HTTPS) -------------------
 echo "[3/6] Updating llama.cpp (ikawrakow fork)..."
 
 git config --global --add safe.directory "$SRC_DIR"
 mkdir -p "$SRC_DIR"
 
 if [ -d "$SRC_DIR/.git" ]; then
-    echo "   → Pulling latest..."
+    echo "   → Pulling latest (HTTPS)..."
     cd "$SRC_DIR"
-    git remote set-url origin "$LLAMA_REPO"
+    git remote set-url origin "$LLAMA_REPO" || true
+    git config --local remote.origin.url "$LLAMA_REPO"
     git fetch --all --prune
     git reset --hard origin/master
     git clean -fdx
 else
-    echo "   → Fresh clone..."
+    echo "   → Fresh clone (HTTPS)..."
     git clone "$LLAMA_REPO" "$SRC_DIR"
 fi
 
@@ -90,7 +91,7 @@ cmake "$SRC_DIR" \
 echo "[5/6] Building..."
 ninja -j$THR
 
-# ------------------- 6. Launch - Conservative for Pascal -------------------
+# ------------------- 6. Launch -------------------
 echo "[LAUNCH] Starting server - Conservative settings..."
 
 taskset -c "$CPU_AFFINITY" "$SRV" \
@@ -111,14 +112,3 @@ taskset -c "$CPU_AFFINITY" "$SRV" \
     --threads-batch $THR \
     --batch-size 256 \
     --ubatch-size 128 \
-    --temp $TEMP \
-    --top-p 0.95 \
-    --top-k 40 \
-    --repeat-penalty 1.10 \
-    --presence-penalty 0.1 \
-    --port $PORT \
-    --host 0.0.0.0 \
-    --embeddings \
-    --jinja \
-    --no-warmup \
-    --verbose
