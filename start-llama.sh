@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
 # Llama.cpp Runner – Dual RTX Titan (Pascal) Optimized
-# ikawrakow fork + Conservative settings
+# ikawrakow fork + HTTPS (no SSH key problems)
 # =============================================================================
 
 set -e
@@ -17,12 +17,12 @@ SRV="$BUILD_DIR/bin/llama-server"
 CPU_AFFINITY="0-63"
 THR=64
 
-CTX=32768          # Reduced for stability
+CTX=32768
 TEMP=0.7
 PORT=8080
 TENSOR_SPLIT="0.5,0.5"
 
-echo "=== Llama Runner – ikawrakow fork ==="
+echo "=== Llama Runner – ikawrakow fork (HTTPS) ==="
 
 # ------------------- 1. System deps -------------------
 echo "[1/6] Installing build tools..."
@@ -51,26 +51,22 @@ else
 fi
 echo "[CUDA] $(nvcc --version | head -n1 || echo 'CPU-only mode')"
 
-# ------------------- 3. Update llama.cpp -------------------
-echo "[3/6] Updating llama.cpp..."
+# ------------------- 3. Update llama.cpp (HTTPS) -------------------
+echo "[3/6] Updating llama.cpp (ikawrakow fork)..."
 
 git config --global --add safe.directory "$SRC_DIR"
-mkdir -p ~/.ssh && chmod 700 ~/.ssh
-ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null || true
-chmod 644 ~/.ssh/known_hosts
-
 mkdir -p "$SRC_DIR"
 
 if [ -d "$SRC_DIR/.git" ]; then
     echo "   → Pulling latest..."
     cd "$SRC_DIR"
     git remote set-url origin "$LLAMA_REPO"
-    GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git fetch --all --prune
+    git fetch --all --prune
     git reset --hard origin/master
     git clean -fdx
 else
     echo "   → Fresh clone..."
-    GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git clone "$LLAMA_REPO" "$SRC_DIR"
+    git clone "$LLAMA_REPO" "$SRC_DIR"
 fi
 
 echo "[VERSION] $(cd "$SRC_DIR" && git log -1 --format="%h %as %s" || echo 'unknown')"
@@ -113,8 +109,8 @@ taskset -c "$CPU_AFFINITY" "$SRV" \
     --flash-attn off \
     --threads $THR \
     --threads-batch $THR \
-    --batch-size 256 \           # Reduced
-    --ubatch-size 128 \          # Reduced
+    --batch-size 256 \
+    --ubatch-size 128 \
     --temp $TEMP \
     --top-p 0.95 \
     --top-k 40 \
