@@ -1,13 +1,14 @@
 #!/bin/bash
 # =============================================================================
 # Llama.cpp Runner – Dual RTX Titan (Pascal) Optimized
-# SSH with explicit key (/home/john/.ssh/github)
+# SSH with explicit key + correct branch handling
 # =============================================================================
 
 set -e
 
 # ================== CONFIG ==================
 LLAMA_REPO="git@github.com:ikawrakow/ik_llama.cpp.git"
+SSH_KEY="/home/john/.ssh/github"
 
 SRC_DIR="$HOME/llama.cpp"
 BUILD_DIR="$SRC_DIR/build-ninja"
@@ -21,9 +22,7 @@ TEMP=0.7
 PORT=8080
 TENSOR_SPLIT="0.5,0.5"
 
-SSH_KEY="/home/john/.ssh/github"     # ← Your key location
-
-echo "=== Llama Runner – ikawrakow fork (SSH with key: $SSH_KEY) ==="
+echo "=== Llama Runner – ikawrakow fork (SSH) ==="
 
 # ------------------- 1. System deps -------------------
 echo "[1/6] Installing build tools..."
@@ -66,9 +65,18 @@ if [ -d "$SRC_DIR/.git" ]; then
     echo "   → Pulling latest via SSH..."
     cd "$SRC_DIR"
     git remote set-url origin "$LLAMA_REPO"
+    
     GIT_SSH_COMMAND="ssh -i $SSH_KEY -o StrictHostKeyChecking=no" \
     git fetch --all --prune
-    git reset --hard origin/master
+    
+    # Use main or master whichever exists
+    if git ls-remote --heads origin main | grep -q main; then
+        git reset --hard origin/main
+        echo "   → Switched to main branch"
+    else
+        git reset --hard origin/master
+        echo "   → Switched to master branch"
+    fi
     git clean -fdx
 else
     echo "   → Fresh clone via SSH..."
