@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
 # Llama.cpp Runner – Dual RTX Titan (Pascal) Optimized
-# SSH with explicit key + better error handling
+# SSH with explicit key - Fixed GIT_SSH_COMMAND
 # =============================================================================
 
 set -e
@@ -62,27 +62,25 @@ chmod 644 ~/.ssh/known_hosts
 
 mkdir -p "$SRC_DIR"
 
-GIT_SSH_COMMAND="ssh -i $SSH_KEY -o StrictHostKeyChecking=no -o IdentitiesOnly=yes"
-
 if [ -d "$SRC_DIR/.git" ]; then
     echo "   → Pulling latest via SSH..."
     cd "$SRC_DIR"
     git remote set-url origin "$LLAMA_REPO"
     
-    $GIT_SSH_COMMAND git fetch --all --prune
+    GIT_SSH_COMMAND="ssh -i $SSH_KEY -o StrictHostKeyChecking=no -o IdentitiesOnly=yes" \
+    git fetch --all --prune
     
     # Auto-detect branch
     if git ls-remote --heads origin main | grep -q main; then
         git reset --hard origin/main
-        echo "   → Using main branch"
     else
         git reset --hard origin/master
-        echo "   → Using master branch"
     fi
     git clean -fdx
 else
     echo "   → Fresh clone via SSH..."
-    $GIT_SSH_COMMAND git clone "$LLAMA_REPO" "$SRC_DIR"
+    GIT_SSH_COMMAND="ssh -i $SSH_KEY -o StrictHostKeyChecking=no -o IdentitiesOnly=yes" \
+    git clone "$LLAMA_REPO" "$SRC_DIR"
 fi
 
 echo "[VERSION] $(cd "$SRC_DIR" && git log -1 --format="%h %as %s" || echo 'unknown')"
