@@ -107,7 +107,7 @@ taskset -c "$CPU_AFFINITY" "$SRV" \
     --yarn-orig-ctx 32768 \
     --cache-type-k q8_0 \
     --cache-type-v q8_0 \
-    --flash-attn off \
+    --flash-attn on \
     --threads $THR \
     --threads-batch $THR \
     --batch-size 256 \
