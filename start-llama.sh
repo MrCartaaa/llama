@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
 # Llama.cpp Runner – Dual RTX Titan (Pascal) Optimized
-# SSH with explicit key + correct branch handling
+# SSH with explicit key + better error handling
 # =============================================================================
 
 set -e
@@ -56,32 +56,33 @@ echo "[3/6] Updating llama.cpp via SSH..."
 
 git config --global --add safe.directory "$SRC_DIR"
 mkdir -p ~/.ssh && chmod 700 ~/.ssh
+chmod 600 "$SSH_KEY" 2>/dev/null || true
 ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null || true
 chmod 644 ~/.ssh/known_hosts
 
 mkdir -p "$SRC_DIR"
+
+GIT_SSH_COMMAND="ssh -i $SSH_KEY -o StrictHostKeyChecking=no -o IdentitiesOnly=yes"
 
 if [ -d "$SRC_DIR/.git" ]; then
     echo "   → Pulling latest via SSH..."
     cd "$SRC_DIR"
     git remote set-url origin "$LLAMA_REPO"
     
-    GIT_SSH_COMMAND="ssh -i $SSH_KEY -o StrictHostKeyChecking=no" \
-    git fetch --all --prune
+    $GIT_SSH_COMMAND git fetch --all --prune
     
-    # Use main or master whichever exists
+    # Auto-detect branch
     if git ls-remote --heads origin main | grep -q main; then
         git reset --hard origin/main
-        echo "   → Switched to main branch"
+        echo "   → Using main branch"
     else
         git reset --hard origin/master
-        echo "   → Switched to master branch"
+        echo "   → Using master branch"
     fi
     git clean -fdx
 else
     echo "   → Fresh clone via SSH..."
-    GIT_SSH_COMMAND="ssh -i $SSH_KEY -o StrictHostKeyChecking=no" \
-    git clone "$LLAMA_REPO" "$SRC_DIR"
+    $GIT_SSH_COMMAND git clone "$LLAMA_REPO" "$SRC_DIR"
 fi
 
 echo "[VERSION] $(cd "$SRC_DIR" && git log -1 --format="%h %as %s" || echo 'unknown')"
