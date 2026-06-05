@@ -1,14 +1,13 @@
 #!/bin/bash
 # =============================================================================
 # Llama.cpp Runner – Dual RTX Titan (Pascal) Optimized
-# Pure HTTPS + ikawrakow fork
+# SSH with explicit key (/home/john/.ssh/github)
 # =============================================================================
 
 set -e
 
 # ================== CONFIG ==================
-# LLAMA_REPO="https://github.com/ggerganov/llama.cpp.git"     # Change this line:
-LLAMA_REPO="git@github.com:ikawrakow/ik_llama.cpp.git"   # ← Best for MoE on Pascal
+LLAMA_REPO="git@github.com:ikawrakow/ik_llama.cpp.git"
 
 SRC_DIR="$HOME/llama.cpp"
 BUILD_DIR="$SRC_DIR/build-ninja"
@@ -22,7 +21,9 @@ TEMP=0.7
 PORT=8080
 TENSOR_SPLIT="0.5,0.5"
 
-echo "=== Llama Runner – ikawrakow fork (HTTPS) ==="
+SSH_KEY="/home/john/.ssh/github"     # ← Your key location
+
+echo "=== Llama Runner – ikawrakow fork (SSH with key: $SSH_KEY) ==="
 
 # ------------------- 1. System deps -------------------
 echo "[1/6] Installing build tools..."
@@ -51,21 +52,27 @@ else
 fi
 echo "[CUDA] $(nvcc --version | head -n1 || echo 'CPU-only mode')"
 
-# ------------------- 3. Update llama.cpp (HTTPS) -------------------
-echo "[3/6] Updating llama.cpp..."
+# ------------------- 3. Update llama.cpp via SSH -------------------
+echo "[3/6] Updating llama.cpp via SSH..."
 
 git config --global --add safe.directory "$SRC_DIR"
+mkdir -p ~/.ssh && chmod 700 ~/.ssh
+ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null || true
+chmod 644 ~/.ssh/known_hosts
+
 mkdir -p "$SRC_DIR"
 
 if [ -d "$SRC_DIR/.git" ]; then
-    echo "   → Pulling latest via HTTPS..."
+    echo "   → Pulling latest via SSH..."
     cd "$SRC_DIR"
     git remote set-url origin "$LLAMA_REPO"
+    GIT_SSH_COMMAND="ssh -i $SSH_KEY -o StrictHostKeyChecking=no" \
     git fetch --all --prune
     git reset --hard origin/master
     git clean -fdx
 else
-    echo "   → Fresh clone via HTTPS..."
+    echo "   → Fresh clone via SSH..."
+    GIT_SSH_COMMAND="ssh -i $SSH_KEY -o StrictHostKeyChecking=no" \
     git clone "$LLAMA_REPO" "$SRC_DIR"
 fi
 
