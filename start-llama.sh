@@ -64,14 +64,14 @@ if [ -d "$SRC_DIR/.git" ]; then
     git remote set-url origin git@github.com:ggml-org/llama.cpp.git
     
     # Try to use your key explicitly
-    GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -i /home/john/.ssh/id_ed25519" \
+    GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -i /home/john/.ssh/github" \
     git fetch --all --prune
     
     git reset --hard origin/master
     git clean -fdx
 else
     echo "   → Fresh clone via SSH..."
-    GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -i /home/john/.ssh/id_ed25519" \
+    GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -i /home/john/.ssh/github" \
     git clone git@github.com:ggml-org/llama.cpp.git "$SRC_DIR"
 fi
 
