@@ -103,10 +103,11 @@ taskset -c "$CPU_AFFINITY" "$SRV" \
     --tensor-split $TENSOR_SPLIT \
     --split-mode layer \
     --n-gpu-layers -1 \
+    --n-cpu-moe 8 \
     --ctx-size $CTX \
     --rope-scaling yarn \
     --rope-scale 4 \
-    --flash-attn off \
+    --flash-attn on \
     --yarn-orig-ctx 32768 \
     --cache-type-k q8_0 \
     --cache-type-v q8_0 \
