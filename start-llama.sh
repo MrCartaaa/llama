@@ -1,25 +1,28 @@
 #!/bin/bash
 # =============================================================================
-# Llama.cpp Runner – ggml-org/llama.cpp (SSH) | Dual Titan Optimized
+# Llama.cpp Runner – Dual RTX Titan (Pascal) Optimized
+# Easy fork switching
 # =============================================================================
 
 set -e
 
-# ------------------- CONFIG -------------------
+# ================== CONFIG ==================
+# LLAMA_REPO="https://github.com/ggerganov/llama.cpp.git"     # Change this line:
+LLAMA_REPO="https://github.com/ikawrakow/ik_llama.cpp.git"   # ← Best for MoE on Pascal
+
 SRC_DIR="$HOME/llama.cpp"
 BUILD_DIR="$SRC_DIR/build-ninja"
-
 SRV="$BUILD_DIR/bin/llama-server"
 
 CPU_AFFINITY="0-63"
 THR=64
 
-CTX=131072
+CTX=65536
 TEMP=0.7
 PORT=8080
-TENSOR_SPLIT="0.48,0.52"
+TENSOR_SPLIT="0.5,0.5"
 
-echo "=== Llama Runner – ggml-org/llama.cpp (SSH) ==="
+echo "=== Llama Runner – Using repo: $LLAMA_REPO ==="
 
 # ------------------- 1. System deps -------------------
 echo "[1/6] Installing build tools..."
@@ -48,8 +51,8 @@ else
 fi
 echo "[CUDA] $(nvcc --version | head -n1 || echo 'CPU-only mode')"
 
-# ------------------- 3. Update llama.cpp via SSH (ggml-org) -------------------
-echo "[3/6] Updating llama.cpp (ggml-org) via SSH..."
+# ------------------- 3. Update llama.cpp -------------------
+echo "[3/6] Updating llama.cpp..."
 
 git config --global --add safe.directory "$SRC_DIR"
 mkdir -p ~/.ssh && chmod 700 ~/.ssh
@@ -59,25 +62,20 @@ chmod 644 ~/.ssh/known_hosts
 mkdir -p "$SRC_DIR"
 
 if [ -d "$SRC_DIR/.git" ]; then
-    echo "   → Pulling latest via SSH..."
+    echo "   → Pulling latest..."
     cd "$SRC_DIR"
-    git remote set-url origin git@github.com:ggml-org/llama.cpp.git
-    
-    # Try to use your key explicitly
-    GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -i /home/john/.ssh/github" \
-    git fetch --all --prune
-    
+    git remote set-url origin "$LLAMA_REPO"
+    GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git fetch --all --prune
     git reset --hard origin/master
     git clean -fdx
 else
-    echo "   → Fresh clone via SSH..."
-    GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -i /home/john/.ssh/github" \
-    git clone git@github.com:ggml-org/llama.cpp.git "$SRC_DIR"
+    echo "   → Fresh clone..."
+    GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git clone "$LLAMA_REPO" "$SRC_DIR"
 fi
 
 echo "[VERSION] $(cd "$SRC_DIR" && git log -1 --format="%h %as %s" || echo 'unknown')"
 
-# ------------------- 4-6. CMake + Build + Launch (unchanged) -------------------
+# ------------------- 4. CMake (Pascal Optimized) -------------------
 echo "[4/6] Configuring CMake..."
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
@@ -96,7 +94,9 @@ cmake "$SRC_DIR" \
 echo "[5/6] Building..."
 ninja -j$THR
 
-echo "[LAUNCH] Starting server..."
+# ------------------- 6. Launch -------------------
+echo "[LAUNCH] Starting server - Dual Titan + Light MoE offload..."
+
 taskset -c "$CPU_AFFINITY" "$SRV" \
     --model /home/john/.cache/llama.cpp/unsloth_Qwen3-Coder-Next-GGUF_Qwen3-Coder-Next-UD-Q4_K_S.gguf \
     --chat-template-file /home/john/llama/llama-templates/qwen3_unsloth_chat_template.jinja \
