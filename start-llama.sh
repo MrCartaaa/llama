@@ -58,10 +58,6 @@ echo "[3/6] Updating llama.cpp to latest master (SSH)..."
 
 # Fix ownership + populate GitHub host keys
 git config --global --add safe.directory "$SRC_DIR"
-mkdir -p ~/.ssh
-chmod 700 ~/.ssh
-ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null || true
-chmod 644 ~/.ssh/known_hosts
 
 mkdir -p "$SRC_DIR"
 
