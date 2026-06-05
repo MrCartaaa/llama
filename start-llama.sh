@@ -64,7 +64,7 @@ mkdir -p "$SRC_DIR"
 if [ -d "$SRC_DIR/.git" ]; then
     echo "   → Pulling latest via SSH..."
     cd "$SRC_DIR"
-    git remote set-url origin git@github.com:ggerganov/llama.cpp.git
+    git remote set-url origin git@github.com:ggml-org/llama.cpp.git
     GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
     git fetch --all --prune
     git reset --hard origin/master
@@ -72,7 +72,7 @@ if [ -d "$SRC_DIR/.git" ]; then
 else
     echo "   → Fresh clone via SSH..."
     GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" \
-    git clone git@github.com:ggerganov/llama.cpp.git "$SRC_DIR"
+    git clone git@github.com:ggml-org/llama.cpp.git "$SRC_DIR"
 fi
 
 echo "[VERSION] $(cd "$SRC_DIR" && git log -1 --format="%h %as %s")"
