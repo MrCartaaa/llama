@@ -98,7 +98,7 @@ ninja -j$THR
 
 echo "[LAUNCH] Starting server..."
 taskset -c "$CPU_AFFINITY" "$SRV" \
-    -hf unsloth/Qwen3-Coder-Next-GGUF:UD-Q4_K_S \
+    --model /home/john/.cache/llama.cpp/unsloth_Qwen3-Coder-Next-GGUF_Qwen3-Coder-Next-UD-Q4_K_S.gguf \
     --chat-template-file /home/john/llama/llama-templates/qwen3_unsloth_chat_template.jinja \
     --tensor-split $TENSOR_SPLIT \
     --split-mode layer \
