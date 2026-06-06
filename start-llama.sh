@@ -7,7 +7,8 @@
 set -e
 
 # ================== CONFIG ==================
-LLAMA_REPO="git@github.com:ikawrakow/ik_llama.cpp.git"
+# LLAMA_REPO="git@github.com:ikawrakow/ik_llama.cpp.git"
+LLAMA_REPO="git@github.com:ggml-org/llama.cpp.git"
 SSH_KEY="/home/john/.ssh/github"
 
 SRC_DIR="$HOME/llama.cpp"
