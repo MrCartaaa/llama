@@ -101,7 +101,6 @@ taskset -c "$CPU_AFFINITY" "$SRV" \
     --tensor-split $TENSOR_SPLIT \
     --split-mode graph \
     --n-gpu-layers -1 \
-    --n-cpu-moe 8 \
     --ctx-size 131072 \
     --rope-scaling yarn \
     --rope-scale 4 \
@@ -122,5 +121,7 @@ taskset -c "$CPU_AFFINITY" "$SRV" \
     --host 0.0.0.0 \
     --embeddings \
     --jinja \
+    --mlock \
+    --no-mmap \
     --no-warmup \
     --verbose
