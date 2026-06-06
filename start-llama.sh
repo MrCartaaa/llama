@@ -102,7 +102,7 @@ taskset -c "$CPU_AFFINITY" "$SRV" \
     --split-mode layer \
     --n-gpu-layers -1 \
     --n-cpu-moe 8 \
-    --ctx-size $CTX \
+    --ctx-size 131072 \
     --rope-scaling yarn \
     --rope-scale 4 \
     --yarn-orig-ctx 32768 \
@@ -111,8 +111,8 @@ taskset -c "$CPU_AFFINITY" "$SRV" \
     --flash-attn on \
     --threads $THR \
     --threads-batch $THR \
-    --batch-size 1024 \
-    --ubatch-size 512 \
+    --batch-size 4096 \
+    --ubatch-size 2048 \
     --temp $TEMP \
     --top-p 0.95 \
     --top-k 40 \
