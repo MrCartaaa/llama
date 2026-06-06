@@ -86,8 +86,8 @@ cmake "$SRC_DIR" \
     -DLLAMA_CURL=ON \
     -DLLAMA_OPENSSL=ON \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_CUDA_ARCHITECTURES=61 \     # Explicitly target sm_61
-    -DGGML_CUDA_FORCE_MMQ=ON \          # Force MMQ kernels for old arch
+    -DCMAKE_CUDA_ARCHITECTURES=61 \
+    -DGGML_CUDA_FORCE_MMQ=ON \
     -DGGML_CUDA_F16=ON
 
 echo "[5/6] Building..."
