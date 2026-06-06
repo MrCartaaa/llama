@@ -72,8 +72,8 @@ git clone "$LLAMA_REPO" "$SRC_DIR"
 
 echo "[VERSION] $(cd "$SRC_DIR" && git log -1 --format="%h %as %s" || echo 'unknown')"
 
-# ------------------- 4. CMake (Pascal - Strong Fix) -------------------
-echo "[4/6] Configuring CMake (Pascal sm_61 - Strong Fix)..."
+# ------------------- 4. CMake (Turing sm_75) -------------------
+echo "[4/6] Configuring CMake (Turing sm_75)..."
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
@@ -81,17 +81,15 @@ cd "$BUILD_DIR"
 cmake "$SRC_DIR" \
     -G Ninja \
     -DGGML_CUDA=ON \
-    -DGGML_CUDA_FA=OFF \
+    -DGGML_CUDA_FA=ON \
     -DLLAMA_BUILD_SERVER=ON \
     -DLLAMA_CURL=ON \
     -DLLAMA_OPENSSL=ON \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_CUDA_ARCHITECTURES=61 \
-    -DGGML_CUDA_FORCE_MMQ=ON \
-    -DGGML_CUDA_F16=ON \
-    -DGGML_CUDA_NO_PEER_ACCESS=ON
+    -DCMAKE_CUDA_ARCHITECTURES=75 \
+    -DGGML_CUDA_FORCE_MMQ=ON
 
-echo "[5/6] Building (this may take a while)..."
+echo "[5/6] Building..."
 ninja -j$THR
 
 # ------------------- 6. Launch -------------------
