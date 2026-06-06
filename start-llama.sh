@@ -20,7 +20,7 @@ THR=64
 CTX=32768
 TEMP=0.7
 PORT=8080
-TENSOR_SPLIT="0.5,0.5"
+TENSOR_SPLIT="0.3,0.7"
 
 echo "=== Llama Runner – ikawrakow fork (SSH) ==="
 
