@@ -113,8 +113,8 @@ taskset -c "$CPU_AFFINITY" "$SRV" \
     --flash-attn on \
     --threads $THR \
     --threads-batch $THR \
-    --batch-size 65536 \
-    --ubatch-size 32768 \
+    --batch-size 2048 \
+    --ubatch-size 1024 \
     --temp $TEMP \
     --top-p 0.95 \
     --top-k 40 \
