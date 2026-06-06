@@ -99,7 +99,8 @@ taskset -c "$CPU_AFFINITY" "$SRV" \
     --model /home/john/.cache/llama.cpp/unsloth_Qwen3-Coder-Next-GGUF_Qwen3-Coder-Next-UD-Q4_K_S.gguf \
     --chat-template-file /home/john/llama/llama-templates/qwen3_unsloth_chat_template.jinja \
     --tensor-split $TENSOR_SPLIT \
-    -ot ".*_exps=GPU" \
+    --override-tensor ".*_exps=GPU" \
+    --n-cpu-moe 0 \
     --split-mode graph \
     --main-gpu 1 \
     --n-gpu-layers -1 \
