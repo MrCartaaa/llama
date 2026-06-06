@@ -102,7 +102,7 @@ taskset -c "$CPU_AFFINITY" "$SRV" \
     --tensor-split $TENSOR_SPLIT \
     --override-tensor ".*_exps=CUDA1" \
     --n-cpu-moe 0 \
-    --split-mode graph \
+    --split-mode tensor \
     --main-gpu 1 \
     --n-gpu-layers -1 \
     --ctx-size 131072 \
