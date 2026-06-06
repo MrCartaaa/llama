@@ -62,7 +62,7 @@ chmod 644 ~/.ssh/known_hosts
 
 mkdir -p "$SRC_DIR"
 
-if [ -d "$SRC_DIR/.git" ]; then
+if [ -d "$SRC_DIR/" ]; then
   rm -rf $LLAMA_REPO
 fi
 
