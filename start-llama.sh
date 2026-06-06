@@ -72,8 +72,8 @@ git clone "$LLAMA_REPO" "$SRC_DIR"
 
 echo "[VERSION] $(cd "$SRC_DIR" && git log -1 --format="%h %as %s" || echo 'unknown')"
 
-# ------------------- 4. CMake -------------------
-echo "[4/6] Configuring CMake..."
+# ------------------- 4. CMake (Pascal Fixed) -------------------
+echo "[4/6] Configuring CMake (Pascal sm_61)..."
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
@@ -86,7 +86,9 @@ cmake "$SRC_DIR" \
     -DLLAMA_CURL=ON \
     -DLLAMA_OPENSSL=ON \
     -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_CUDA_ARCHITECTURES=61
+    -DCMAKE_CUDA_ARCHITECTURES=61 \     # Explicitly target sm_61
+    -DGGML_CUDA_FORCE_MMQ=ON \          # Force MMQ kernels for old arch
+    -DGGML_CUDA_F16=ON
 
 echo "[5/6] Building..."
 ninja -j$THR
